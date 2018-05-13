@@ -46,6 +46,7 @@ export default {
   computed: {
     userInfo () {
       console.log('index store.state.userInfo')
+      //维护userInfo 也可以用storage
       return store.state.userInfo
     }
   },
@@ -58,10 +59,26 @@ export default {
     getUserInfo () {
       // 调用登录接口
       wx.login({
-        success: () => {
+        success: (re) => {
+          console.log(re)
+          //todo 传递re.code 到后端 解析出openid，在后端维护返回一个uuid和openid 对应，每次请求带着uuid 作为用户唯一性验证。
+          //用户是否授权，可决定是否调用wx.getUserInfo，因为不授权的时候调用wx.getUserInfo 没作用也就获取不到res.iv  和res.encryptedData此时只需传递 code 后端即可
+          wx.getSetting({
+            success: (res1) => {
+            console.log(res1)
+              /*
+               * res.authSetting = {
+               *   "scope.userInfo": true,
+               *   "scope.userLocation": true
+               * }
+               */
+            }
+          })
           wx.getUserInfo({
-            success: (res) => {
-              store.commit('setUserInfo',res.userInfo);
+            success: (res2) => {
+              console.log(res2)
+              store.commit('setUserInfo',res2.userInfo);
+              //todo 如果用户授权后,可把 re.code res.iv  和res.encryptedData 一起传入后端用作解密详细用户数据
 
               // this.userInfo = res.userInfo
             }
@@ -81,8 +98,7 @@ export default {
 
   },
 
-  created () {
-    // 调用应用实例的方法获取全局数据
+  async created () {
     console.log('index created')
     this.getUserInfo()
   }
